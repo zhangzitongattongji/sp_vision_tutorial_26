@@ -97,5 +97,4 @@ int main()
     if (ret != MV_OK) {
         return -1;
     }
-
 }
