@@ -10,7 +10,7 @@ int main()
     // 初始化相机、yolo类
     myCamera camera;
 
-    string yolopath="./configs/yolo.yaml";
+    string yolopath="configs/yolo.yaml";
     auto_aim::YOLO armorDetector(yolopath);
     while (1) {
         // 调用相机读取图像
@@ -27,13 +27,35 @@ int main()
         
           for (const auto& armor : armors) {
             const auto& points = armor.points; // 获取装甲板的关键点
+            
             if (points.size() == 4) { // 确保有四个关键节点
                 // 将四个点连接成一个矩形
                 cv::line(frame, points[0], points[1], cv::Scalar(0, 0, 255), 2); // 红色线条
                 cv::line(frame, points[1], points[2], cv::Scalar(0, 0, 255), 2);
                 cv::line(frame, points[2], points[3], cv::Scalar(0, 0, 255), 2);
                 cv::line(frame, points[3], points[0], cv::Scalar(0, 0, 255), 2);
+                
             }
+            int num_id = armor.name;
+            int color_id = armor.color;
+            std::vector<std::string> name_map = {"one", "two", "three", "four", "five"};
+            std::string name_str = (num_id >= 0 && num_id < name_map.size()) ? name_map[num_id] : "Unknown";
+            std::string color_str = "Unknown";
+            if (color_id == 0) color_str = "Red";
+            else if (color_id == 1) color_str = "Blue";
+            else if (color_id == 2) color_str = "Extinguish";
+
+            std::string info = name_str + color_str;
+
+            // 在图像中心上方显示
+            cv::Point2f center = armor.center;
+            if (!std::isnan(center.x) && !std::isnan(center.y)) {
+                cv::putText(frame, info, 
+                        cv::Point(center.x - 30, center.y - 10),
+                        cv::FONT_HERSHEY_SIMPLEX, 3, 
+                        cv::Scalar(0, 0 , 255), 10);
+            }
+            
         }
             // 4. 显示结果图像
             cv::resize(frame, frame, cv::Size(640, 480)); // 调整图像大小以便显示

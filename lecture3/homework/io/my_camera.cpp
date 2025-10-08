@@ -21,7 +21,7 @@ myCamera::myCamera() : handle_(nullptr), is_opened_(false) {
     MV_CC_SetEnumValue(handle_, "BalanceWhiteAuto", MV_BALANCEWHITE_AUTO_CONTINUOUS);
     MV_CC_SetEnumValue(handle_, "ExposureAuto", MV_EXPOSURE_AUTO_MODE_OFF);
     MV_CC_SetEnumValue(handle_, "GainAuto", MV_GAIN_MODE_OFF);
-    MV_CC_SetFloatValue(handle_, "ExposureTime", 10000);
+    MV_CC_SetFloatValue(handle_, "ExposureTime", 2000);
     MV_CC_SetFloatValue(handle_, "Gain", 20);
     MV_CC_SetFrameRate(handle_, 60);
 
@@ -37,33 +37,6 @@ myCamera::~myCamera() {
     if (handle_) {
         MV_CC_DestroyHandle(handle_);
     }
-}
-
-// 读取一帧图像
-cv::Mat myCamera::read() {
-    if (!is_opened_) {
-        throw std::runtime_error("Camera is not opened!");
-    }
-
-    MV_FRAME_OUT raw;
-    unsigned int nMsec = 100;
-
-    int ret = MV_CC_StartGrabbing(handle_);
-    if (ret != MV_OK) {
-        throw std::runtime_error("Failed to start grabbing!");
-    }
-
-    ret = MV_CC_GetImageBuffer(handle_, &raw, nMsec);
-    if (ret != MV_OK) {
-        MV_CC_StopGrabbing(handle_);
-        throw std::runtime_error("Failed to get image buffer!");
-    }
-
-    cv::Mat img = this->transfer(raw); // 调用原始转换函数
-    MV_CC_FreeImageBuffer(handle_, &raw);
-
-    MV_CC_StopGrabbing(handle_);
-    return img;
 }
 
 cv::Mat myCamera::transfer(MV_FRAME_OUT& raw) {
@@ -91,3 +64,31 @@ cv::Mat myCamera::transfer(MV_FRAME_OUT& raw) {
 
     return img;
 }
+// 读取一帧图像
+cv::Mat myCamera::read() {
+    if (!is_opened_) {
+        throw std::runtime_error("Camera is not opened!");
+    }
+
+    MV_FRAME_OUT raw;
+    unsigned int nMsec = 100;
+
+    int ret = MV_CC_StartGrabbing(handle_);
+    if (ret != MV_OK) {
+        throw std::runtime_error("Failed to start grabbing!");
+    }
+
+    ret = MV_CC_GetImageBuffer(handle_, &raw, nMsec);
+    if (ret != MV_OK) {
+        MV_CC_StopGrabbing(handle_);
+        throw std::runtime_error("Failed to get image buffer!");
+    }
+
+    cv::Mat img = this->transfer(raw); // 调用原始转换函数
+    
+    ret = MV_CC_FreeImageBuffer(handle_, &raw);
+  
+    MV_CC_StopGrabbing(handle_);
+    return img;
+}
+
